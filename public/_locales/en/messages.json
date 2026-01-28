@@ -8,6 +8,12 @@
   "action_sendAllWindowsTabs": {
     "message": "Send All Tabs - All Windows"
   },
+  "action_sendGithubTabs": {
+    "message": "Send GitHub Tabs"
+  },
+  "action_sendZhihuTabs": {
+    "message": "Send Zhihu Tabs"
+  },
   "action_sendCurrentGroup": {
     "message": "Send Current Group"
   },

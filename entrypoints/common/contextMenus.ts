@@ -127,6 +127,58 @@ export const getBaseMenus = async (): Promise<CreateMenuPropertiesType[]> => {
     enabled: filteredTabs?.length > 0,
   };
 
+  async function hasGithubTabs() {
+    const allTabs = await browser.tabs.query({});
+    const githubTabs = allTabs.filter(tab => {
+      if (!tab.url) return false;
+      try {
+        const url = new URL(tab.url);
+        return url.hostname.includes('github.com');
+      } catch {
+        return false;
+      }
+    });
+    const filteredGithubTabs = await tabUtils.getFilteredTabs(githubTabs, settings);
+    return filteredGithubTabs?.length > 0;
+  }
+  const _hasGithubTabs = await hasGithubTabs();
+  const _sendGithubTabs: CreateMenuPropertiesType = {
+    tag: 'sendTabs',
+    id: ENUM_ACTION_NAME.SEND_GITHUB_TABS,
+    title: getTitle(
+      customMessages['common.sendGithubTabs'],
+      ENUM_ACTION_NAME.SEND_GITHUB_TABS,
+    ),
+    contexts,
+    enabled: _hasGithubTabs,
+  };
+
+  async function hasZhihuTabs() {
+    const allTabs = await browser.tabs.query({});
+    const zhihuTabs = allTabs.filter(tab => {
+      if (!tab.url) return false;
+      try {
+        const url = new URL(tab.url);
+        return url.hostname.includes('zhihu.com');
+      } catch {
+        return false;
+      }
+    });
+    const filteredZhihuTabs = await tabUtils.getFilteredTabs(zhihuTabs, settings);
+    return filteredZhihuTabs?.length > 0;
+  }
+  const _hasZhihuTabs = await hasZhihuTabs();
+  const _sendZhihuTabs: CreateMenuPropertiesType = {
+    tag: 'sendTabs',
+    id: ENUM_ACTION_NAME.SEND_ZHIHU_TABS,
+    title: getTitle(
+      customMessages['common.sendZhihuTabs'],
+      ENUM_ACTION_NAME.SEND_ZHIHU_TABS,
+    ),
+    contexts,
+    enabled: _hasZhihuTabs,
+  };
+
   const _sendCurrentGroup: CreateMenuPropertiesType = {
     tag: 'sendTabs',
     id: ENUM_ACTION_NAME.SEND_CURRENT_GROUP,
@@ -229,6 +281,8 @@ export const getBaseMenus = async (): Promise<CreateMenuPropertiesType[]> => {
     _openGlobalSearch,
     _sendAllTabs,
     _sendAllWindowsTabs,
+    _sendGithubTabs,
+    _sendZhihuTabs,
     _sendCurrentTab,
     _sendCurrentGroup,
     _sendOtherTabs,
@@ -373,6 +427,12 @@ export async function actionHandler(
       break;
     case ENUM_ACTION_NAME.SEND_ALL_WINDOWS_TABS:
       await tabUtils.sendAllTabs(targetData, { onlyCurrentWindow: false });
+      break;
+    case ENUM_ACTION_NAME.SEND_GITHUB_TABS:
+      await tabUtils.sendGithubTabs(targetData);
+      break;
+    case ENUM_ACTION_NAME.SEND_ZHIHU_TABS:
+      await tabUtils.sendZhihuTabs(targetData);
       break;
     case ENUM_ACTION_NAME_FF.SEND_CURRENT_TAB:
     case ENUM_ACTION_NAME.SEND_CURRENT_TAB:

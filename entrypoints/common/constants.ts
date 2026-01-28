@@ -110,6 +110,8 @@ export enum ENUM_ACTION_NAME {
   OPEN_ADMIN_TAB = 'action:openAdminTab', // 打开管理后台
   SEND_ALL_TABS = 'action:sendAllTabs', // 发送全部标签页
   SEND_ALL_WINDOWS_TABS = 'action:sendAllWindowsTabs', // 发送全部窗口的所有标签页
+  SEND_GITHUB_TABS = 'action:sendGithubTabs', // 发送GitHub标签页
+  SEND_ZHIHU_TABS = 'action:sendZhihuTabs', // 发送知乎标签页
   SEND_CURRENT_TAB = 'action:sendCurrentTab', // 发送当前标签页
   SEND_CURRENT_GROUP = 'action:sendCurrentGroup', // 发送当前标签组
   SEND_OTHER_TABS = 'action:sendOtherTabs', // 发送其他标签页
@@ -206,9 +208,9 @@ export const LANGUAGE_OPTIONS: Array<{
   locale: LanguageTypes;
   label: string;
 }> = [
-  { key: 'zh-CN', locale: 'zh-CN', label: '简体中文' },
-  { key: 'en-US', locale: 'en-US', label: 'English' },
-];
+    { key: 'zh-CN', locale: 'zh-CN', label: '简体中文' },
+    { key: 'en-US', locale: 'en-US', label: 'English' },
+  ];
 
 export const defaultLanguage: LanguageTypes = 'en-US';
 

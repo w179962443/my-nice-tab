@@ -8,6 +8,8 @@ const zhCN = {
   'common.sendTabs': '发送标签页',
   'common.sendAllTabs': '发送所有标签页',
   'common.sendAllWindowsTabs': '发送所有窗口的标签页',
+  'common.sendGithubTabs': '发送GitHub标签页',
+  'common.sendZhihuTabs': '发送知乎标签页',
   'common.sendCurrentGroup': '发送当前标签组',
   'common.sendCurrentTab': '发送当前标签页',
   'common.sendOtherTabs': '发送其他标签页',

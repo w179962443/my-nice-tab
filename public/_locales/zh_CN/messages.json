@@ -8,6 +8,12 @@
   "action_sendAllWindowsTabs": {
     "message": "发送所有窗口的标签页"
   },
+  "action_sendGithubTabs": {
+    "message": "发送GitHub标签页"
+  },
+  "action_sendZhihuTabs": {
+    "message": "发送知乎标签页"
+  },
   "action_sendCurrentGroup": {
     "message": "发送当前标签组"
   },
