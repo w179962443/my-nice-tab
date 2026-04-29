@@ -10,7 +10,7 @@ import {
   QRCode,
   Typography,
 } from 'antd';
-import type { MenuProps } from 'antd';
+import type { MenuProps, CheckboxProps } from 'antd';
 import {
   CloseOutlined,
   EditOutlined,
@@ -35,6 +35,8 @@ import {
 import Favicon from '~/entrypoints/common/components/Favicon';
 import TabItemEditModal from './TabItemEditModal';
 
+export type QuickSelectFunc = (tab: TabItem, selected?: boolean) => void;
+
 type TabItemProps = TabItem & {
   tag: Pick<TagItem, 'isLocked' | 'isStarred'>;
   group: Pick<GroupItem, 'groupId' | 'isLocked' | 'isStarred'>;
@@ -42,6 +44,7 @@ type TabItemProps = TabItem & {
   onRemove?: (tabs: TabItem[]) => void;
   onChange?: (data: TabItem) => void;
   onCopy?: (tabs: TabItem[]) => void;
+  onQuickSelect?: QuickSelectFunc;
 };
 
 const {
@@ -89,6 +92,7 @@ export default memo(function TabListItem({
   onRemove,
   onChange,
   onCopy,
+  onQuickSelect,
 }: TabItemProps) {
   const { token } = theme.useToken();
   const { $fmt } = useIntlUtls();
@@ -236,6 +240,19 @@ export default memo(function TabListItem({
     [tab, onCopy],
   );
 
+  const handleSelectChange = useCallback<Required<CheckboxProps>['onChange']>(
+    e => {
+      // console.log('handleSelectChange--e', e);
+      const { shiftKey } = e.nativeEvent || {};
+      if (e.target.checked) {
+        shiftKey && onQuickSelect?.(tab, e.target.checked);
+      } else {
+        onQuickSelect?.(tab, e.target.checked);
+      }
+    },
+    [onQuickSelect],
+  );
+
   const draggingListener = (value: boolean) => {
     setIsDragging(value);
     if (value) setTooltipVisible(false);
@@ -285,7 +302,11 @@ export default memo(function TabListItem({
           <CloseOutlined />
         </StyledActionIconBtn>
         {/* checkbox */}
-        <Checkbox className="checkbox-item" value={tab.tabId}></Checkbox>
+        <Checkbox
+          className="checkbox-item"
+          value={tab.tabId}
+          onChange={handleSelectChange}
+        ></Checkbox>
         <Dropdown
           menu={{ items: moreItems, onClick: onMoreItemClick }}
           trigger={['click']}

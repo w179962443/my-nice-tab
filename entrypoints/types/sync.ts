@@ -8,7 +8,7 @@ export type SyncRemoteType = 'gitee' | 'github';
 export type SyncConfigItemProps = {
   accessToken?: string;
   gistId?: string;
-  filename?: string,
+  filename?: string;
   autoSync?: boolean;
 };
 // 同步配置
@@ -60,6 +60,7 @@ export type SyncConfigItemWebDAVProps = WebDAVClientOptions & {
   directory?: string; // 自定义目录字段
   filename_tabList?: string; // 自定义列表文件名
   filename_settings?: string; // 自定义偏好设置文件名
+  autoSync?: boolean;
   syncStatus?: SyncStatus;
   syncResult?: SyncResultItemProps[];
 };

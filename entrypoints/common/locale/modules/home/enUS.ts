@@ -45,6 +45,8 @@ const enUS: Record<LocaleKey, string> = {
   'home.tabGroup.unstar': 'Untop',
   'home.tabGroup.recover': 'Recover',
   'home.tabGroup.open': 'Open Group',
+  'home.tabGroup.addGroupBefore': 'Create Group Before',
+  'home.tabGroup.addGroupAfter': 'Create Group After',
   'home.tabGroup.tabsSortAsc': 'Title Ascending',
   'home.tabGroup.tabsSortDesc': 'Title Descending',
 
@@ -79,6 +81,8 @@ const enUS: Record<LocaleKey, string> = {
 
   'home.getPermission.tabGroups': 'Get "tabGroups" Permission',
   'home.getPermission.tabGroups.tip': 'Grant "tabGroups" permission to access the native tab group feature for a better experience!',
+
+  'home.displayPinnedTabs': 'Display Pinned Tabs?',
 
   'home.help.tip.userGuide': 'For more information, please refer to the {userGuide}.',
   'home.help.reminder.start': 'For security reasons, Firefox may not allow privileged URLs such as:',

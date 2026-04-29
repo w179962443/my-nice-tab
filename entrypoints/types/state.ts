@@ -27,7 +27,8 @@ export interface HomeStateProps {
 }
 // Popup 面板状态
 export interface PopupStateProps {
-  isCompact?: boolean;
+  isCompact?: boolean; // 是否显示精简/紧凑模式
+  isShowPinnedTabs?: boolean; // 是否显示固定标签页
 }
 
 export interface StateProps {

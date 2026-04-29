@@ -5,6 +5,7 @@ import type {
   PageWidthTypes,
   ActionBtnStyle,
   InsertPositions,
+  OpeningTabsOrder,
 } from '~/entrypoints/types';
 import {
   ENUM_SETTINGS_PROPS,
@@ -35,6 +36,7 @@ const {
   OPEN_ADMIN_TAB_AFTER_SEND_TABS,
   CLOSE_TABS_AFTER_SEND_TABS,
   ACTION_AUTO_CLOSE_FLAGS,
+  CREATE_NEW_GROUP_ON_SEND_SINGLE_TAB,
   ALLOW_DUPLICATE_TABS,
   ALLOW_DUPLICATE_GROUPS,
   /* 打开标签页配置 */
@@ -45,6 +47,7 @@ const {
   OPEN_TAB_MODIFIER_KEY,
   UNNAMED_GROUP_RESTORE_AS_GROUP,
   NAMED_GROUP_RESTORE_AS_GROUP,
+  OPENING_TABS_ORDER,
   /* 页面标题配置 */
   PAGE_TITLE_CONFIG,
   /* 全局搜索配置 */
@@ -52,6 +55,7 @@ const {
   /* 其他操作配置 */
   DELETE_UNLOCKED_EMPTY_GROUP,
   CONFIRM_BEFORE_DELETING_TABS,
+  CONFIRM_BEFORE_DELETING_GROUPS,
   LINK_TEMPLATE,
   TAB_COUNT_THRESHOLD,
   GROUP_INSERT_POSITION,
@@ -92,6 +96,7 @@ export default class SettingsUtils {
     [OPEN_ADMIN_TAB_AFTER_SEND_TABS]: true, // 发送标签页后默认打开管理后台
     [CLOSE_TABS_AFTER_SEND_TABS]: true, // 发送标签页后是否关闭标签页
     [ACTION_AUTO_CLOSE_FLAGS]: [], // 各种操作的自动关闭标签页标志
+    [CREATE_NEW_GROUP_ON_SEND_SINGLE_TAB]: true, // 发送单个标签页时是否创建新的标签组
     [ALLOW_DUPLICATE_TABS]: true, // 同一个标签组中是否允许重复的标签页
     [ALLOW_DUPLICATE_GROUPS]: true, // 同一个分类中是否允许重复的标签组
     /* 打开标签页配置 */
@@ -100,6 +105,7 @@ export default class SettingsUtils {
     [DISCARD_WHEN_OPEN_TABS]: false, // 是否以休眠方式打开标签页
     [SILENT_OPEN_TAB_MODIFIER_KEY]: 'alt', // 静默打开标签页的修饰键
     [OPEN_TAB_MODIFIER_KEY]: '', // 前台打开标签页的修饰键
+    [OPENING_TABS_ORDER]: 'default' as OpeningTabsOrder, // 打开标签页的顺序
     [UNNAMED_GROUP_RESTORE_AS_GROUP]: import.meta.env.FIREFOX ? false : true, // 是否以标签组形式恢复未命名标签组
     [NAMED_GROUP_RESTORE_AS_GROUP]: import.meta.env.FIREFOX ? false : true, // 是否以标签组形式恢复已命名标签组
     /* 页面标题配置 */
@@ -109,6 +115,7 @@ export default class SettingsUtils {
     /* 其他操作配置 */
     [DELETE_UNLOCKED_EMPTY_GROUP]: true, // 是否删除未锁定的空标签组
     [CONFIRM_BEFORE_DELETING_TABS]: false, // 删除标签页前是否需要确认
+    [CONFIRM_BEFORE_DELETING_GROUPS]: true, // 删除标签组前是否需要确认
     [LINK_TEMPLATE]: '{{url}} | {{title}}', // 复制的链接模板
     [TAB_COUNT_THRESHOLD]: 100, // 分类中标签页超过该数量时，则右侧面板开启虚拟滚动
     [GROUP_INSERT_POSITION]: 'top' as InsertPositions, // 标签组插入位置：在分类的标签组列表顶部还是底部

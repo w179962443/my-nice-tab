@@ -128,6 +128,7 @@ const enUS: Record<LocaleKey, string> = {
   'common.endsWith': 'Ends With',
   'common.contains': 'Contains',
   'common.regex': 'Regex',
+  'common.wildcard': 'Wildcard',
   'common.directory': 'Directory',
   'common.filename': 'Filename',
   'common.expand': 'Expand',
@@ -135,6 +136,11 @@ const enUS: Record<LocaleKey, string> = {
   'common.light': 'Light',
   'common.dark': 'Dark',
   'common.auto': 'Auto',
+  'common.default': 'Default',
+  'common.reverse': 'Reverse',
+  'common.filter': 'Filter',
+  'common.locked': 'Locked',
+  'common.starred': 'Starred',
 };
 
 export default enUS;

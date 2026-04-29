@@ -25,7 +25,7 @@ export default defineConfig({
       ...(isFirefox ? [] : ['tabGroups', 'commands', 'favicon']),
     ],
     optional_permissions: [
-      "tabGroups"
+      ...(isFirefox ? ["tabGroups"] : []),
     ],
     homepage_url: 'https://github.com/web-dahuyou/NiceTab',
     host_permissions: ['<all_urls>'],

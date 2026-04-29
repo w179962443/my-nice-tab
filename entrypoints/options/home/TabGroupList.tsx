@@ -22,6 +22,7 @@ const ListItem = memo(
       handleSelect,
       refreshTreeData,
       handleTabGroupRemove,
+      handleTabGroupCreate,
       handleTabGroupChange,
       handleTabGroupStarredChange,
       handleTabGroupDedup,
@@ -79,6 +80,7 @@ const ListItem = memo(
         actionBtnStyle={settings.groupActionBtnStyle || 'text'}
         onChange={data => handleTabGroupChange(tabGroup, data)}
         onRemove={() => handleTabGroupRemove(tabGroup)}
+        onCreate={handleTabGroupCreate}
         onRestore={() => handleTabGroupRestore(tabGroup)}
         onStarredChange={isStarred => handleTabGroupStarredChange(tabGroup, isStarred)}
         onDedup={() => handleTabGroupDedup(tabGroup)}

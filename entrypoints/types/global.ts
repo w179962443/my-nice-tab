@@ -147,6 +147,8 @@ export type PageTitleConfigItem = {
 };
 
 export type TimeRange = [string, string];
+// 批量打开标签页顺序（default-正向 reverse-反向）
+export type OpeningTabsOrder = 'default' | 'reverse';
 
 // 管理后台-设置信息
 export type SettingsProps = {
@@ -164,6 +166,7 @@ export type SettingsProps = {
   openAdminTabAfterSendTabs?: boolean; // 发送标签页后是否打开管理后台
   closeTabsAfterSendTabs?: boolean; // 发送标签页后是否关闭标签页
   actionAutoCloseFlags?: ActionNames[]; // 各种发送标签页操作是否自动关闭标签页的开关配置
+  createNewGroupOnSendSingleTab?: boolean; // 是否在发送单个标签页时自动创建标签组
   allowDuplicateTabs?: boolean; // 同一个标签组中是否允许重复的标签页
   allowDuplicateGroups?: boolean; // 同一个分类中是否允许重复的标签组
   /* 打开标签页配置 */
@@ -172,6 +175,7 @@ export type SettingsProps = {
   discardWhenOpenTabs?: boolean; // 是否以休眠方式打开标签页
   silentOpenTabModifierKey?: string; // 静默打开标签页的修饰键
   openTabModifierKey?: string; // 前台打开标签页的修饰键
+  openingTabsOrder?: OpeningTabsOrder; // 批量打开标签页顺序
   unnamedGroupRestoreAsGroup?: boolean; // 是否以标签组形式恢复未命名标签组
   namedGroupRestoreAsGroup?: boolean; // 是否以标签组形式恢复已命名标签组
   /* 页面标题配置 */
@@ -181,6 +185,7 @@ export type SettingsProps = {
   /* 其他操作配置 */
   deleteUnlockedEmptyGroup?: boolean; // 是否删除未锁定的空标签组
   confirmBeforeDeletingTabs?: boolean; // 删除标签页前是否确认
+  confirmBeforeDeletingGroups?: boolean; // 删除标签组前是否确认
   linkTemplate?: string; // 链接模板
   tabCountThreshold?: number; // 分类中标签页超过该数量时，则右侧面板开启虚拟滚动
   groupInsertPosition?: InsertPositions; // 标签组插入位置：在分类的标签组列表顶部还是底部

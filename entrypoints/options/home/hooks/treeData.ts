@@ -208,8 +208,25 @@ export function useTreeData() {
   );
   // 创建标签组
   const handleTabGroupCreate = useCallback(
-    async (tagKey: React.Key) => {
-      const { tagId, tabGroup } = await tabListUtils.createTabGroup(tagKey);
+    async (tagKey: React.Key, groupKey?: React.Key, pos?: 'before' | 'after') => {
+      let tagId = tagKey,
+        tabGroup = {} as GroupItem;
+      if (!groupKey) {
+        // 默认方式创建标签组
+        const createResult = await tabListUtils.createTabGroup(tagKey);
+        tagKey = createResult.tagId;
+        tabGroup = createResult.tabGroup;
+      } else {
+        // 在指定标签组前后创建新标签组
+        const createResult = await tabListUtils.createTabGroup(
+          tagKey,
+          undefined,
+          groupKey,
+          pos,
+        );
+        tagKey = createResult.tagId;
+        tabGroup = createResult.tabGroup;
+      }
       refreshTreeData(treeData => {
         const tag = treeData.find(tag => tag.key === tagId) as TreeDataNodeTag;
         const group = tag.children?.find(

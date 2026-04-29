@@ -1,9 +1,13 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Modal } from 'antd';
 import { useIntlUtls } from '~/entrypoints/common/hooks/global';
+import { settingsUtils } from '~/entrypoints/common/storage';
+import { ENUM_SETTINGS_PROPS } from '~/entrypoints/common/constants';
 import MoveToModal from './MoveToModal';
 import useMoveTo from './hooks/moveTo';
 import type { RenderTreeNodeActionProps, MoveToCallbackProps } from './types';
+
+const { CONFIRM_BEFORE_DELETING_GROUPS } = ENUM_SETTINGS_PROPS;
 
 export interface ModalViewProps {
   open: boolean;
@@ -19,7 +23,15 @@ export function useTreeNodeAction(actionFn?: (props: RenderTreeNodeActionProps) 
     (props: RenderTreeNodeActionProps) => {
       setActionParams(props);
       if (props.actionName === 'remove') {
-        setRemoveModalVisible(true);
+        const settings = settingsUtils.settings || {};
+        if (
+          props.node?.type === 'tabGroup' &&
+          !settings[CONFIRM_BEFORE_DELETING_GROUPS]
+        ) {
+          actionFn?.(props);
+        } else {
+          setRemoveModalVisible(true);
+        }
       } else if (props.actionName === 'moveTo') {
         setMoveToModalVisible(true);
       } else {

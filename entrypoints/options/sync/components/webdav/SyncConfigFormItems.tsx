@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { theme, Flex, Typography, Form, Input, Button, Modal } from 'antd';
+import { theme, Flex, Typography, Form, Input, Button, Modal, Switch } from 'antd';
 import { InfoCircleOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import type { FormInstance } from 'antd';
 import styled from 'styled-components';
@@ -138,6 +138,13 @@ export default function SyncConfigFormItem({ form }: SyncConfigFormItemProps) {
                         })}
                       >
                         <Input placeholder="__NiceTab_settings_web_dav__.json" />
+                      </Form.Item>
+                      <Form.Item
+                        label={$fmt('sync.autoSync')}
+                        name={[field.name, 'autoSync']}
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Switch />
                       </Form.Item>
                       <Form.Item name={[field.name, 'key']} hidden>
                         <Input />

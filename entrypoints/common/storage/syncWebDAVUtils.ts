@@ -95,6 +95,7 @@ export default class syncWebDAVUtils {
       directory: '',
       filename_tabList: '',
       filename_settings: '',
+      autoSync: false,
       ...configItem,
       syncStatus: 'idle' as SyncStatus,
       syncResult: [],
@@ -454,6 +455,7 @@ export default class syncWebDAVUtils {
     const config = await this.getConfig();
     const configList = config.configList?.filter(item => !!item.webdavConnectionUrl);
     for (const option of configList) {
+      if (syncType.startsWith('auto-') && !option.autoSync) continue;
       await this.syncStart(option, syncType);
     }
   }

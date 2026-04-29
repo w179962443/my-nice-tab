@@ -83,6 +83,7 @@ export default function EditInput({
     onEditingStatusChange?.(true);
     setTimeout(() => {
       inputRef?.current?.focus();
+      inputRef?.current?.select(); // 全选文本
     }, 10);
   };
 

@@ -462,7 +462,9 @@ export default class SyncUtils {
   async autoSyncStart(data: { syncType: SyncType }) {
     const { syncType } = data || {};
     await this.getConfig();
-    for (const remoteType of ['github', 'gitee']) {
+    const remoteTypes: SyncRemoteType[] = ['github', 'gitee'];
+    for (const remoteType of remoteTypes) {
+      if (syncType.startsWith('auto-') && !this.config[remoteType]?.autoSync) continue;
       await this.syncStart(remoteType as SyncRemoteType, syncType);
     }
   }

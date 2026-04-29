@@ -21,7 +21,10 @@ const {
 } = ENUM_SETTINGS_PROPS;
 
 export default function FormModuleDisplay(
-  props: FormItemProps & { form: FormInstance<SettingsProps>, onChange?: (val?: any) => void },
+  props: FormItemProps & {
+    form: FormInstance<SettingsProps>;
+    onChange?: (val?: any) => void;
+  },
 ) {
   const { token } = theme.useToken();
   const { $fmt } = useIntlUtls();
@@ -55,7 +58,6 @@ export default function FormModuleDisplay(
       <Form.Item<SettingsProps>
         label={$fmt(`settings.${GROUP_ACTION_BTN_STYLE}`)}
         name={GROUP_ACTION_BTN_STYLE}
-        {...formItemProps}
       >
         <Radio.Group>
           <Radio value="text">{$fmt('common.text')}</Radio>
@@ -70,7 +72,6 @@ export default function FormModuleDisplay(
         tooltip={getFormTooltipOption({
           title: $fmt(`settings.${GROUP_ACTION_BTNS_COMMONLY_USED}.tooltip`),
         })}
-        {...formItemProps}
       >
         <Checkbox.Group options={groupActionBtnOptions}></Checkbox.Group>
       </Form.Item>
@@ -79,7 +80,6 @@ export default function FormModuleDisplay(
       <Form.Item<SettingsProps>
         label={$fmt(`settings.${SHOW_OPENED_TAB_COUNT}`)}
         name={SHOW_OPENED_TAB_COUNT}
-        {...formItemProps}
       >
         <Radio.Group>
           <Radio value={true}>{$fmt('common.yes')}</Radio>

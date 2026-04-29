@@ -9,6 +9,8 @@ export const defaultGroupActions = [
   'remove',
   'rename',
   'restore',
+  'addGroupBefore',
+  'addGroupAfter',
   'lock',
   'star',
   'dedup',
@@ -36,6 +38,14 @@ export const groupActionOptions: ActionOption[] = [
   {
     actionName: 'restore',
     labelKey: 'home.tabGroup.open',
+  },
+  {
+    actionName: 'addGroupBefore',
+    labelKey: 'home.tabGroup.addGroupBefore',
+  },
+  {
+    actionName: 'addGroupAfter',
+    labelKey: 'home.tabGroup.addGroupAfter',
   },
   {
     actionName: 'lock',

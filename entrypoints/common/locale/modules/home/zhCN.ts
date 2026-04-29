@@ -43,6 +43,8 @@ const zhCN = {
   'home.tabGroup.unstar': '取消星标',
   'home.tabGroup.recover': '还原该组',
   'home.tabGroup.open': '打开该组',
+  'home.tabGroup.addGroupBefore': '在上方新建标签组',
+  'home.tabGroup.addGroupAfter': '在下方新建标签组',
   'home.tabGroup.tabsSortAsc': '标签名称升序',
   'home.tabGroup.tabsSortDesc': '标签名称降序',
 
@@ -65,6 +67,8 @@ const zhCN = {
 
   'home.getPermission.tabGroups': '获取标签组权限',
   'home.getPermission.tabGroups.tip': '授权 tabGroups 权限，可对接原生标签组功能，体验更佳！',
+
+  'home.displayPinnedTabs': '是否展示固定标签页',
 
   'home.help.tip.userGuide': '更多信息请查看{userGuide}。',
   'home.help.reminder.start': '出于安全原因，在 Firefox 中，可能不允许使用特权 URL，例如：',

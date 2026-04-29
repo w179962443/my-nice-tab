@@ -117,6 +117,7 @@ const zhCN = {
   'common.endsWith': '结束于',
   'common.contains': '包含',
   'common.regex': '正则',
+  'common.wildcard': '通配符',
   'common.directory': '目录',
   'common.filename': '文件名',
   'common.expand': '展开',
@@ -124,6 +125,11 @@ const zhCN = {
   'common.light': '浅色',
   'common.dark': '深色',
   'common.auto': '自动',
+  'common.default': '默认',
+  'common.reverse': '反向',
+  'common.filter': '筛选',
+  'common.locked': '已锁定',
+  'common.starred': '已星标',
 };
 
 export type LocaleKey = keyof typeof zhCN;
