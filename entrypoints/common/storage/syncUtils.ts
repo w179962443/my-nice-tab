@@ -8,6 +8,8 @@ import type {
   SyncStatus,
   SyncStatusProps,
   SyncType,
+  TagItem,
+  GroupItem,
 } from '~/entrypoints/types';
 import { eventEmitter } from '~/entrypoints/common/hooks/global';
 import {
@@ -284,6 +286,127 @@ export default class SyncUtils {
     return (data as GistResponseItemProps) || {};
   }
 
+  getDefaultGroupNameSortKey(groupName = '') {
+    const match = groupName.match(/^G_(\d{8})_(\d{2}:\d{2}:\d{2})_(\d+)$/);
+    if (!match) return '';
+
+    const [, date, time, milliseconds] = match;
+    return `${date}${time.replace(/:/g, '')}${milliseconds.padStart(13, '0')}`;
+  }
+
+  getGroupSortKey(group: GroupItem) {
+    const groupNameSortKey = this.getDefaultGroupNameSortKey(group.groupName);
+    if (groupNameSortKey) return groupNameSortKey;
+
+    const createTimeSortKey = group.createTime?.replace(/\D/g, '') || '';
+    if (!createTimeSortKey) return '';
+
+    return `${createTimeSortKey.padEnd(14, '0')}0000000000000`;
+  }
+
+  sortGroupsByCreateTimeDesc(groupList: GroupItem[]) {
+    return groupList
+      .map((group, index) => ({ group, index, sortKey: this.getGroupSortKey(group) }))
+      .sort((a, b) => {
+        const sortResult = b.sortKey.localeCompare(a.sortKey);
+        return sortResult || a.index - b.index;
+      })
+      .map(item => item.group);
+  }
+
+  mergeSameNameGroup(localGroup: GroupItem, remoteGroup: GroupItem): GroupItem {
+    const tabUrlSet = new Set(
+      (localGroup.tabList || []).map(tab => tab.url).filter(Boolean),
+    );
+    const remoteTabList = (remoteGroup.tabList || []).filter(tab => {
+      if (!tab.url) return true;
+      if (tabUrlSet.has(tab.url)) return false;
+
+      tabUrlSet.add(tab.url);
+      return true;
+    });
+
+    return {
+      ...localGroup,
+      tabList: [...(localGroup.tabList || []), ...remoteTabList],
+    };
+  }
+
+  mergeGroupList(localGroupList: GroupItem[] = [], remoteGroupList: GroupItem[] = []) {
+    const groupMap = new Map<GroupItem['groupName'], GroupItem>();
+
+    for (const group of localGroupList) {
+      const mapGroup = groupMap.get(group.groupName);
+      groupMap.set(
+        group.groupName,
+        mapGroup ? this.mergeSameNameGroup(mapGroup, group) : group,
+      );
+    }
+
+    for (const group of remoteGroupList) {
+      const mapGroup = groupMap.get(group.groupName);
+      groupMap.set(
+        group.groupName,
+        mapGroup ? this.mergeSameNameGroup(mapGroup, group) : group,
+      );
+    }
+
+    return this.sortGroupsByCreateTimeDesc([...groupMap.values()]);
+  }
+
+  getMergedTagMap(tagList: TagItem[]) {
+    const tagMap = new Map<TagItem['tagName'], TagItem>();
+
+    for (const tag of tagList) {
+      const mapTag = tagMap.get(tag.tagName);
+      if (mapTag) {
+        tagMap.set(tag.tagName, {
+          ...mapTag,
+          groupList: this.mergeGroupList(mapTag.groupList, tag.groupList),
+        });
+      } else {
+        tagMap.set(tag.tagName, {
+          ...tag,
+          groupList: this.mergeGroupList(tag.groupList, []),
+        });
+      }
+    }
+
+    return tagMap;
+  }
+
+  mergeLocalAndRemoteTags(localTagList: TagItem[], remoteTagList: TagItem[]) {
+    const localTagMap = this.getMergedTagMap(localTagList);
+    const remoteTagMap = this.getMergedTagMap(remoteTagList);
+    const tagNameSet = new Set<TagItem['tagName']>();
+
+    localTagList.forEach(tag => tagNameSet.add(tag.tagName));
+    remoteTagList.forEach(tag => tagNameSet.add(tag.tagName));
+
+    return [...tagNameSet]
+      .reduce<TagItem[]>((result, tagName) => {
+        const localTag = localTagMap.get(tagName);
+        const remoteTag = remoteTagMap.get(tagName);
+
+        if (localTag && remoteTag) {
+          return [
+            ...result,
+            {
+              ...localTag,
+              groupList: this.mergeGroupList(localTag.groupList, remoteTag.groupList),
+            },
+          ];
+        }
+
+        const tag = localTag || remoteTag;
+        return tag ? [...result, tag] : result;
+      }, [])
+      .sort((a, b) => {
+        if (!!a.static === !!b.static) return 0;
+        return a.static ? -1 : 1;
+      });
+  }
+
   // 根据syncType执行不同的操作
   async handleBySyncType(
     remoteType: SyncRemoteType,
@@ -360,13 +483,16 @@ export default class SyncUtils {
         }
       }
       const tagList = extContentImporter.niceTab(fileContent || '');
-      await Store.tabListUtils.importTags(tagList, 'merge');
       if (
         syncType === syncTypeMap.MANUAL_PUSH_MERGE ||
         syncType === syncTypeMap.AUTO_PUSH_MERGE
       ) {
+        const localTagList = await Store.tabListUtils.getTagList();
+        const mergedTagList = this.mergeLocalAndRemoteTags(localTagList, tagList);
+        await Store.tabListUtils.setTagList(mergedTagList);
         result = await this.updateGist(remoteType);
       } else {
+        await Store.tabListUtils.importTags(tagList, 'merge');
         result = { id: gistData?.id } as GistResponseItemProps;
       }
     }
