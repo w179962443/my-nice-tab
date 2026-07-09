@@ -26,7 +26,7 @@ Capture strategies include:
 - left tabs
 - right tabs
 - other tabs
-- selected domain-based actions such as GitHub or Zhihu
+- a dynamic domain submenu that lists currently opened domains and their tab counts
 
 ### Manage Saved Tabs
 

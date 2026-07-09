@@ -11,6 +11,7 @@ import {
   ENUM_SETTINGS_PROPS,
   defaultLanguage,
   USER_GUIDE_URL_MAP,
+  LEGACY_DOMAIN_AUTO_CLOSE_ACTION_NAMES,
 } from '~/entrypoints/common/constants';
 import {
   objectToUrlParams,
@@ -22,6 +23,11 @@ import {
   sendRuntimeMessage,
 } from '~/entrypoints/common/utils';
 import { getCustomLocaleMessages } from '~/entrypoints/common/locale';
+
+export type DomainTabsStat = {
+  domain: string;
+  count: number;
+};
 
 const {
   LANGUAGE,
@@ -94,6 +100,7 @@ export async function sendTabMessage(
 export async function executeContentScript(
   actionName: string,
   resultType: 'success' | 'error' = 'success',
+  actionLabel?: string,
 ) {
   const settings = await settingsUtils.getSettings();
   const language = settings[LANGUAGE] || defaultLanguage;
@@ -115,13 +122,16 @@ export async function executeContentScript(
     !actionAutoCloseFlags?.includes(_actionName)
   ) {
     const status = resultType === 'success' ? 'success' : 'failed';
+    const resolvedActionLabel =
+      actionLabel ||
+      customMessages[`common.${_actionName}` as keyof typeof customMessages] ||
+      actionName;
 
     sendTabMessage({
       msgType: 'action:callback-message',
       data: {
         type: resultType,
-        content: `${customMessages[`common.${status}`]}: ${customMessages[`common.${_actionName}` as keyof typeof customMessages]
-          }`,
+        content: `${customMessages[`common.${status}`]}: ${resolvedActionLabel}`,
       },
       onlyCurrentTab: true,
     });
@@ -148,8 +158,9 @@ export async function openAdminRoutePage(
   const paramsStr = objectToUrlParams(route?.query || {});
   const settings = await settingsUtils.getSettings();
   const { tab, adminTabUrl } = await getAdminTabInfo();
-  const urlWithParams = `${adminTabUrl}#${route.path || '/home'}${paramsStr ? `?${paramsStr}` : ''
-    }`;
+  const urlWithParams = `${adminTabUrl}#${route.path || '/home'}${
+    paramsStr ? `?${paramsStr}` : ''
+  }`;
 
   // 如果发送标签页后不需要打开管理后台页面
   if (!needOpen) {
@@ -233,6 +244,51 @@ export async function getFilteredTabs(
     return true;
   });
 }
+
+function getTabDomain(tab: Tabs.Tab) {
+  if (!tab.url) return '';
+
+  try {
+    return new URL(tab.url).hostname.toLowerCase();
+  } catch {
+    return '';
+  }
+}
+
+async function getSendableDomainTabsMap(settings?: SettingsProps) {
+  const currentSettings = settings || (await settingsUtils.getSettings());
+  const tabs = await browser.tabs.query({});
+  const filteredTabs = await getFilteredTabs(
+    tabs,
+    currentSettings,
+    tab => !!getTabDomain(tab),
+  );
+
+  return filteredTabs.reduce<Map<string, Tabs.Tab[]>>((result, tab) => {
+    const domain = getTabDomain(tab);
+    if (!domain) return result;
+
+    const matchedTabs = result.get(domain) || [];
+    matchedTabs.push(tab);
+    result.set(domain, matchedTabs);
+    return result;
+  }, new Map());
+}
+
+export async function getDomainTabsStats(
+  settings?: SettingsProps,
+): Promise<DomainTabsStat[]> {
+  const domainTabsMap = await getSendableDomainTabsMap(settings);
+  return [...domainTabsMap.entries()]
+    .map(([domain, tabs]) => ({
+      domain,
+      count: tabs.length,
+    }))
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.domain.localeCompare(b.domain);
+    });
+}
 // 取消标签页高亮
 export async function cancelHighlightTabs(tabs?: Tabs.Tab[]) {
   await new Promise(res => setTimeout(res, 50));
@@ -284,9 +340,9 @@ async function sendAllTabs(
   const tabs = await browser.tabs.query(
     onlyCurrentWindow
       ? {
-        // url: matchUrls,
-        currentWindow: true,
-      }
+          // url: matchUrls,
+          currentWindow: true,
+        }
       : {},
   );
 
@@ -314,32 +370,34 @@ async function sendAllTabs(
 async function sendTabsByDomain(
   domain: string,
   targetData: SendTargetProps = {},
+  { matchMode = 'exact' }: { matchMode?: 'exact' | 'suffix' } = {},
 ) {
-  // 获取所有窗口的标签页
-  const tabs = await browser.tabs.query({});
-
-  // 过滤出包含指定域名的标签页
-  const domainTabs = tabs.filter(tab => {
-    if (!tab.url) return false;
-    try {
-      const url = new URL(tab.url);
-      return url.hostname.includes(domain);
-    } catch {
-      return false;
-    }
-  });
-
-  // 获取插件设置
   const settings = await settingsUtils.getSettings();
-  const filteredTabs = await getFilteredTabs(domainTabs, settings);
+  const domainTabsMap = await getSendableDomainTabsMap(settings);
+
+  let filteredTabs = domainTabsMap.get(domain) || [];
+  if (matchMode === 'suffix') {
+    filteredTabs = [...domainTabsMap.entries()].reduce<Tabs.Tab[]>(
+      (result, [key, tabs]) => {
+        if (key === domain || key.endsWith(`.${domain}`)) {
+          result.push(...tabs);
+        }
+        return result;
+      },
+      [],
+    );
+  }
+
   if (!filteredTabs?.length) return;
   const { tagId, groupId } = await tabListUtils.createTabs(filteredTabs, targetData);
   await openAdminTab(settings, { tagId, groupId });
   const actionAutoCloseFlags = settings[ACTION_AUTO_CLOSE_FLAGS];
   if (
     settings[CLOSE_TABS_AFTER_SEND_TABS] ||
-    actionAutoCloseFlags?.includes('sendGithubTabs') ||
-    actionAutoCloseFlags?.includes('sendZhihuTabs')
+    actionAutoCloseFlags?.includes('sendDomainTabs') ||
+    LEGACY_DOMAIN_AUTO_CLOSE_ACTION_NAMES.some(actionName =>
+      actionAutoCloseFlags?.includes(actionName),
+    )
   ) {
     setTimeout(() => {
       browser.tabs.remove(filteredTabs.map(t => t.id as number).filter(Boolean));
@@ -350,14 +408,19 @@ async function sendTabsByDomain(
   }
 }
 
-// 发送GitHub标签页
-async function sendGithubTabs(targetData: SendTargetProps = {}) {
-  await sendTabsByDomain('github.com', targetData);
+// 发送指定域名标签页
+async function sendDomainTabs(domain: string, targetData: SendTargetProps = {}) {
+  await sendTabsByDomain(domain, targetData);
 }
 
-// 发送知乎标签页
+// 发送GitHub标签页（兼容旧动作）
+async function sendGithubTabs(targetData: SendTargetProps = {}) {
+  await sendTabsByDomain('github.com', targetData, { matchMode: 'suffix' });
+}
+
+// 发送知乎标签页（兼容旧动作）
 async function sendZhihuTabs(targetData: SendTargetProps = {}) {
-  await sendTabsByDomain('zhihu.com', targetData);
+  await sendTabsByDomain('zhihu.com', targetData, { matchMode: 'suffix' });
 }
 
 // 发送当前选中的标签页所在的标签组（支持多选）
@@ -763,9 +826,11 @@ export default {
   updateAdminPageUrl,
   updateAdminPageUrlDebounced,
   getFilteredTabs,
+  getDomainTabsStats,
   cancelHighlightTabs,
   getAllTabs,
   sendAllTabs,
+  sendDomainTabs,
   sendGithubTabs,
   sendZhihuTabs,
   sendCurrentGroup,

@@ -8,6 +8,7 @@ const zhCN = {
   'common.sendTabs': '发送标签页',
   'common.sendAllTabs': '发送所有标签页',
   'common.sendAllWindowsTabs': '发送所有窗口的标签页',
+  'common.sendDomainTabs': '发送所有指定域名标签页',
   'common.sendGithubTabs': '发送GitHub标签页',
   'common.sendZhihuTabs': '发送知乎标签页',
   'common.sendCurrentGroup': '发送当前标签组',
@@ -90,7 +91,8 @@ const zhCN = {
   'common.adminPage': '管理后台',
   'common.shortcuts': '快捷键',
   'common.bindShortcuts': '绑定快捷键',
-  'common.bindShortcuts.tip': 'firefox 浏览器请前往 about:addons 页面，切换到“扩展”选项卡，点击右上角的“设置（用于所有附加组件的工具）”按钮打开下拉菜单，然后选择“管理扩展快捷键”按钮进行修改',
+  'common.bindShortcuts.tip':
+    'firefox 浏览器请前往 about:addons 页面，切换到“扩展”选项卡，点击右上角的“设置（用于所有附加组件的工具）”按钮打开下拉菜单，然后选择“管理扩展快捷键”按钮进行修改',
   'common.sendTo': '发送到',
   'common.search': '搜索',
   'common.reload': '重新加载',

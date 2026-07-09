@@ -9,6 +9,7 @@ import type {
 } from '~/entrypoints/types';
 import {
   ENUM_SETTINGS_PROPS,
+  ENUM_ACTION_NAME,
   POPUP_MODULE_NAMES,
   defaultLanguage,
   defaultThemeType,
@@ -18,6 +19,8 @@ import {
   defaultAutoSyncTimeUnit,
   defaultAutoSyncRelation,
   defaultTimeRange,
+  LEGACY_DOMAIN_MENU_ACTION_IDS,
+  LEGACY_DOMAIN_AUTO_CLOSE_ACTION_NAMES,
 } from '../constants';
 import { defaultGroupActions } from '~/entrypoints/options/home/constants';
 
@@ -141,20 +144,73 @@ export default class SettingsUtils {
   storageKey: `local:${string}` = 'local:settings';
   settings: SettingsProps = this.initialSettings;
 
+  normalizeSettings(settings: SettingsProps) {
+    const nextSettings = { ...settings };
+
+    if (nextSettings.actionAutoCloseFlags?.length) {
+      nextSettings.actionAutoCloseFlags = [
+        ...new Set(
+          nextSettings.actionAutoCloseFlags.map(actionName =>
+            LEGACY_DOMAIN_AUTO_CLOSE_ACTION_NAMES.includes(
+              actionName as (typeof LEGACY_DOMAIN_AUTO_CLOSE_ACTION_NAMES)[number],
+            )
+              ? 'sendDomainTabs'
+              : actionName,
+          ),
+        ),
+      ];
+    }
+
+    if (nextSettings.contextMenuConfig?.length) {
+      const knownMenuIds = new Set<string>(
+        defaultContextmenuConfigList.map(item => item.menuId),
+      );
+      const normalizedContextMenuConfig = nextSettings.contextMenuConfig
+        .map(item => {
+          if (!item?.menuId) return null;
+
+          const menuId = LEGACY_DOMAIN_MENU_ACTION_IDS.includes(
+            item.menuId as (typeof LEGACY_DOMAIN_MENU_ACTION_IDS)[number],
+          )
+            ? ENUM_ACTION_NAME.SEND_DOMAIN_TABS
+            : item.menuId;
+
+          if (!knownMenuIds.has(menuId)) return null;
+
+          return {
+            ...item,
+            menuId,
+          };
+        })
+        .filter(Boolean) as typeof nextSettings.contextMenuConfig;
+
+      nextSettings.contextMenuConfig = normalizedContextMenuConfig.filter(
+        (item, index, list) =>
+          list.findIndex(candidate => candidate.menuId === item.menuId) === index,
+      );
+    }
+
+    return nextSettings;
+  }
+
   async setSettings(settings: SettingsProps) {
-    this.settings = { ...this.initialSettings, ...settings };
+    this.settings = this.normalizeSettings({ ...this.initialSettings, ...settings });
     return await storage.setItem(this.storageKey, this.settings);
   }
   async getSettings() {
     const settings = await storage.getItem<SettingsProps>(this.storageKey);
     const _savedBefore = !!settings;
-    this.settings = {
+    const mergedSettings = {
       ...this.initialSettings,
       language: (navigator?.language as LanguageTypes) || defaultLanguage,
       ...settings,
     };
+    const normalizedSettings = this.normalizeSettings(mergedSettings);
+    this.settings = normalizedSettings;
     if (!_savedBefore) {
       this.setSettings(this.settings);
+    } else if (JSON.stringify(normalizedSettings) !== JSON.stringify(mergedSettings)) {
+      this.setSettings(normalizedSettings);
     }
     return this.settings;
   }

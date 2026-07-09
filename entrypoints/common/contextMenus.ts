@@ -19,7 +19,7 @@ import initSettingsStorageListener, {
   syncWebDAVUtils,
 } from './storage';
 import { getCommandsHotkeys } from './commands';
-import { pick, omit, isDomainAllowed, sendRuntimeMessage } from './utils';
+import { omit, isDomainAllowed, sendRuntimeMessage } from './utils';
 
 const {
   LANGUAGE,
@@ -37,8 +37,10 @@ export type ContextMenuHotKeys = Record<string, string>;
 type CreateMenuPropertiesType = Menus.CreateCreatePropertiesType & {
   id: string;
   // 用来给popup等地方复用menus时进行过滤使用，browser.contextMenus.create 时需要去掉这个属性
-  tag: 'common' | 'sendTabs' | 'menuGroup';
+  tag: 'common' | 'sendTabs' | 'menuGroup' | 'dynamicDomain';
 };
+
+const DOMAIN_MENU_ACTION_PREFIX = `${ENUM_ACTION_NAME.SEND_DOMAIN_TABS}:domain:`;
 
 export const getMenuHotkeys = async () => {
   const commandsHotkeysMap = await getCommandsHotkeys();
@@ -60,6 +62,22 @@ export const getContexts = (settings: SettingsProps): Menus.ContextType[] => {
       : [MANIFEST_VERSION == 2 ? 'browser_action' : 'action']
   ) as Menus.ContextType[];
 };
+
+function getDomainMenuActionId(domain: string) {
+  return `${DOMAIN_MENU_ACTION_PREFIX}${encodeURIComponent(domain)}`;
+}
+
+function parseDomainMenuAction(actionName: string) {
+  if (!actionName.startsWith(DOMAIN_MENU_ACTION_PREFIX)) return null;
+
+  return {
+    domain: decodeURIComponent(actionName.slice(DOMAIN_MENU_ACTION_PREFIX.length)),
+  };
+}
+
+function getDomainActionLabel(domain: string, language: string) {
+  return language === 'zh-CN' ? `发送 ${domain} 标签页` : `Send ${domain} Tabs`;
+}
 
 // 获取基础菜单项（平铺结构）
 export const getBaseMenus = async (): Promise<CreateMenuPropertiesType[]> => {
@@ -127,56 +145,15 @@ export const getBaseMenus = async (): Promise<CreateMenuPropertiesType[]> => {
     enabled: filteredTabs?.length > 0,
   };
 
-  async function hasGithubTabs() {
-    const allTabs = await browser.tabs.query({});
-    const githubTabs = allTabs.filter(tab => {
-      if (!tab.url) return false;
-      try {
-        const url = new URL(tab.url);
-        return url.hostname.includes('github.com');
-      } catch {
-        return false;
-      }
-    });
-    const filteredGithubTabs = await tabUtils.getFilteredTabs(githubTabs, settings);
-    return filteredGithubTabs?.length > 0;
-  }
-  const _hasGithubTabs = await hasGithubTabs();
-  const _sendGithubTabs: CreateMenuPropertiesType = {
-    tag: 'sendTabs',
-    id: ENUM_ACTION_NAME.SEND_GITHUB_TABS,
+  const _sendDomainTabs: CreateMenuPropertiesType = {
+    tag: 'menuGroup',
+    id: ENUM_ACTION_NAME.SEND_DOMAIN_TABS,
     title: getTitle(
-      customMessages['common.sendGithubTabs'],
-      ENUM_ACTION_NAME.SEND_GITHUB_TABS,
+      customMessages['common.sendDomainTabs'],
+      ENUM_ACTION_NAME.SEND_DOMAIN_TABS,
     ),
     contexts,
-    enabled: _hasGithubTabs,
-  };
-
-  async function hasZhihuTabs() {
-    const allTabs = await browser.tabs.query({});
-    const zhihuTabs = allTabs.filter(tab => {
-      if (!tab.url) return false;
-      try {
-        const url = new URL(tab.url);
-        return url.hostname.includes('zhihu.com');
-      } catch {
-        return false;
-      }
-    });
-    const filteredZhihuTabs = await tabUtils.getFilteredTabs(zhihuTabs, settings);
-    return filteredZhihuTabs?.length > 0;
-  }
-  const _hasZhihuTabs = await hasZhihuTabs();
-  const _sendZhihuTabs: CreateMenuPropertiesType = {
-    tag: 'sendTabs',
-    id: ENUM_ACTION_NAME.SEND_ZHIHU_TABS,
-    title: getTitle(
-      customMessages['common.sendZhihuTabs'],
-      ENUM_ACTION_NAME.SEND_ZHIHU_TABS,
-    ),
-    contexts,
-    enabled: _hasZhihuTabs,
+    enabled: filteredTabs?.length > 0,
   };
 
   const _sendCurrentGroup: CreateMenuPropertiesType = {
@@ -281,8 +258,7 @@ export const getBaseMenus = async (): Promise<CreateMenuPropertiesType[]> => {
     _openGlobalSearch,
     _sendAllTabs,
     _sendAllWindowsTabs,
-    _sendGithubTabs,
-    _sendZhihuTabs,
+    _sendDomainTabs,
     _sendCurrentTab,
     _sendCurrentGroup,
     _sendOtherTabs,
@@ -356,12 +332,15 @@ export const getMenus = async (): Promise<CreateMenuPropertiesType[]> => {
   // 根据配置对菜单进行排序和过滤
   const finalMenus = menuConfig
     .filter(item => item.display && item.menuId)
-    .map(item => baseMenuMap[item.menuId]);
+    .map(item => baseMenuMap[item.menuId])
+    .filter(Boolean);
 
   const moreThanSix = finalMenus.length > 6;
   // 前6个直接显示，其余放入"更多"菜单组
   const rootMenus = moreThanSix ? finalMenus.slice(0, 5) : finalMenus;
   const groupedMenus = moreThanSix ? finalMenus.slice(5) : [];
+
+  let menusWithGroups = [...rootMenus];
 
   // 如果有需要分组的菜单，添加"更多"菜单组
   if (groupedMenus.length > 0) {
@@ -383,10 +362,36 @@ export const getMenus = async (): Promise<CreateMenuPropertiesType[]> => {
       parentId: 'menuGroup:more',
     }));
 
-    return [...rootMenus, moreMenu, ...menusWithParent];
+    menusWithGroups = [...rootMenus, moreMenu, ...menusWithParent];
   }
 
-  return rootMenus;
+  const hasSendDomainMenu = menusWithGroups.some(
+    menu => menu.id === ENUM_ACTION_NAME.SEND_DOMAIN_TABS,
+  );
+  if (!hasSendDomainMenu) {
+    return menusWithGroups;
+  }
+
+  const language = settings[LANGUAGE] || defaultLanguage;
+  const domainStats = await tabUtils.getDomainTabsStats(settings);
+  const nextMenus = menusWithGroups.map(menu => {
+    if (menu.id !== ENUM_ACTION_NAME.SEND_DOMAIN_TABS) return menu;
+    return {
+      ...menu,
+      enabled: domainStats.length > 0,
+    };
+  });
+
+  const domainMenus: CreateMenuPropertiesType[] = domainStats.map(item => ({
+    tag: 'dynamicDomain',
+    id: getDomainMenuActionId(item.domain),
+    title: `${item.domain} (${item.count})`,
+    parentId: ENUM_ACTION_NAME.SEND_DOMAIN_TABS,
+    contexts: getContexts(settings),
+    enabled: true,
+  }));
+
+  return [...nextMenus, ...domainMenus];
 };
 
 // 创建 contextMenus
@@ -421,18 +426,18 @@ export async function actionHandler(
   targetData?: SendTargetProps,
   tab?: Tabs.Tab,
 ) {
+  const domainAction = parseDomainMenuAction(actionName);
+  if (domainAction?.domain) {
+    await tabUtils.sendDomainTabs(domainAction.domain, targetData);
+    return;
+  }
+
   switch (actionName) {
     case ENUM_ACTION_NAME.SEND_ALL_TABS:
       await tabUtils.sendAllTabs(targetData);
       break;
     case ENUM_ACTION_NAME.SEND_ALL_WINDOWS_TABS:
       await tabUtils.sendAllTabs(targetData, { onlyCurrentWindow: false });
-      break;
-    case ENUM_ACTION_NAME.SEND_GITHUB_TABS:
-      await tabUtils.sendGithubTabs(targetData);
-      break;
-    case ENUM_ACTION_NAME.SEND_ZHIHU_TABS:
-      await tabUtils.sendZhihuTabs(targetData);
       break;
     case ENUM_ACTION_NAME_FF.SEND_CURRENT_TAB:
     case ENUM_ACTION_NAME.SEND_CURRENT_TAB:
@@ -483,11 +488,33 @@ export async function handleSendTabsAction(
   tab?: Tabs.Tab,
 ) {
   try {
+    const domainAction = parseDomainMenuAction(actionName);
     await actionHandler(actionName, targetData, tab);
-    tabUtils.executeContentScript(actionName);
+    if (domainAction?.domain) {
+      const settings = await settingsUtils.getSettings();
+      const language = settings[LANGUAGE] || defaultLanguage;
+      tabUtils.executeContentScript(
+        ENUM_ACTION_NAME.SEND_DOMAIN_TABS,
+        'success',
+        getDomainActionLabel(domainAction.domain, language),
+      );
+    } else {
+      tabUtils.executeContentScript(actionName);
+    }
   } catch (error) {
     console.log(error);
-    tabUtils.executeContentScript(actionName, 'error');
+    const domainAction = parseDomainMenuAction(actionName);
+    if (domainAction?.domain) {
+      const settings = await settingsUtils.getSettings();
+      const language = settings[LANGUAGE] || defaultLanguage;
+      tabUtils.executeContentScript(
+        ENUM_ACTION_NAME.SEND_DOMAIN_TABS,
+        'error',
+        getDomainActionLabel(domainAction.domain, language),
+      );
+    } else {
+      tabUtils.executeContentScript(actionName, 'error');
+    }
   }
 }
 

@@ -103,10 +103,18 @@ export type TabEvents =
 export type ActionNames =
   | 'openAdminTab'
   | 'sendAllTabs'
+  | 'sendAllWindowsTabs'
+  | 'sendDomainTabs'
+  | 'sendGithubTabs'
+  | 'sendZhihuTabs'
+  | 'sendCurrentGroup'
   | 'sendCurrentTab'
   | 'sendOtherTabs'
   | 'sendLeftTabs'
-  | 'sendRightTabs';
+  | 'sendRightTabs'
+  | 'globalSearch'
+  | 'startSync'
+  | 'hibernateTabs';
 
 // 页面模块名称
 export type PageModuleNames =

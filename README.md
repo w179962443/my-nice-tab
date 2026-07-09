@@ -58,6 +58,7 @@ Comprehensive user guide | <a href="./GUIDE-zh.md">NiceTab 用户指南</a> (Eng
 ### General Features
 
 - Supports sending all tabs, all tabs (all windows), currect tab group, current tabs, other tabs, left-side tabs, and right-side tabs in just one click.
+- Supports sending tabs by currently opened domain from the context menu, with submenu items sorted by tab count.
 - Supports sending native browser tab groups into NiceTab, and re-open them as native tab groups in your browser.
 - Supports browser command shortcuts (open the NiceTab-Admin-Page, send all tabs, send the current tab, etc.).
 - Preferences support.
@@ -135,7 +136,7 @@ Screenshots of other actions are not yet updated.
 
 ### Right-Click Menu
 
-- Right-clicking the extension icon reveals a quick-access context menu, you can open the `NiceTab Admin Page` (aka `Dashboard`) or try one-click actions to send all tabs, the current tab, other tabs, left-side tabs, or right-side tabs.
+- Right-clicking the extension icon reveals a quick-access context menu, you can open the `NiceTab Admin Page` (aka `Dashboard`) or try one-click actions to send all tabs, the current tab, other tabs, left-side tabs, right-side tabs, or all tabs for a selected domain.
 
 ![NiceTab-right-click-menu](https://github.com/user-attachments/assets/2fe82628-9dde-4cba-b336-6ca59b2ec5eb)
 
