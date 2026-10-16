@@ -39,6 +39,7 @@ import {
   POPUP_MODULE_NAMES,
 } from '~/entrypoints/common/constants';
 import ColorList from '~/entrypoints/common/components/ColorList.tsx';
+import PersonalReleaseNotice from '~/entrypoints/common/components/PersonalReleaseNotice';
 import { GlobalStyle } from '~/entrypoints/common/style/Common.styled';
 import TabGroupItem, { type GroupListItem } from './TabGroupItem';
 import { type TabActions } from './TabItem';
@@ -511,6 +512,7 @@ export default function App() {
               )}
             </>
           )}
+          <PersonalReleaseNotice className="block" />
         </div>
 
         {/* 模块-已打开标签页列表 */}

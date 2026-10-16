@@ -1,0 +1,41 @@
+name: Build personal extension
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      WXT_UPDATE_MANIFEST_URL: ${{ vars.NICETAB_UPDATE_MANIFEST_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify release logic
+        run: pnpm test:release
+      - name: Check types
+        run: pnpm compile
+      - name: Lint
+        run: pnpm lint:no-fix
+      - name: Build Chromium extension
+        run: pnpm build
+      - name: Package Chromium extension
+        run: pnpm zip
+      - name: Prepare archive and latest.json
+        run: node scripts/prepare-release.mjs public/release.json .output/chrome-mv3 .output release-artifact "$GITHUB_SHA"
+      - name: Upload release files
+        uses: actions/upload-artifact@v4
+        with:
+          name: nice-tab-personal-${{ github.sha }}
+          path: release-artifact/
+          if-no-files-found: error

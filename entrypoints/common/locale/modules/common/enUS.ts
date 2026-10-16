@@ -61,6 +61,8 @@ const enUS: Record<LocaleKey, string> = {
   'common.goToGithub': 'Star on GitHub',
   'common.update.available': 'New Version [{version}] Available',
   'common.update.upgradeNow': 'Upgrade Now',
+  'common.personalRelease.available': 'Personal build {build} is available',
+  'common.personalRelease.download': 'Download update',
   'common.backToTop': 'Back to Top',
   'common.panel': 'Panel',
   'common.sidebar': 'Sidebar',

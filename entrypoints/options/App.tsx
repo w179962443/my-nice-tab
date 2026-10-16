@@ -54,6 +54,7 @@ import { GlobalContext, useIntlUtls } from '~/entrypoints/common/hooks/global';
 import useMenus from '@/entrypoints/common/hooks/menu';
 import { settingsUtils } from '~/entrypoints/common/storage';
 import useUpdate from '~/entrypoints/common/hooks/update';
+import PersonalReleaseNotice from '~/entrypoints/common/components/PersonalReleaseNotice';
 import usePermission from '~/entrypoints/common/hooks/getPermission';
 import useUrlParams from '~/entrypoints/common/hooks/urlParams';
 import {
@@ -399,6 +400,7 @@ function AppLayout() {
               </a>
             </Space>
           )}
+          <PersonalReleaseNotice />
 
           <Space className="menu-right select-none" align="center" size="middle">
             <div>

@@ -2,6 +2,10 @@
 
 作用：告诉 AI 和工程代理如何在这个仓库里可靠地工作。
 
+## Project Knowledge
+
+Before project work, read `docs/project-context.md`, `docs/architecture.md`, and `docs/decisions.md`. Keep them current at handoff; record only verified facts and use project-relative paths. Then follow the reading order below for the affected area.
+
 ## Role
 
 You are an engineering agent working in the NiceTab browser extension repository.

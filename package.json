@@ -12,6 +12,7 @@
     "zip": "pnpm convert:guide && wxt zip",
     "zip:firefox": "pnpm convert:guide && wxt zip -b firefox",
     "compile": "tsc --noEmit",
+    "test:release": "node --experimental-strip-types tests/release.test.mjs",
     "convert:guide": "node scripts/md2html.js GUIDE-zh.md",
     "postinstall": "wxt prepare",
     "lint:no-fix": "eslint entrypoints --fix=false",

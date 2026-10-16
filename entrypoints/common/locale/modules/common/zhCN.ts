@@ -59,6 +59,8 @@ const zhCN = {
   'common.goToGithub': '给个小星星吧',
   'common.update.available': '有可用的新版本[{version}]',
   'common.update.upgradeNow': '立即升级',
+  'common.personalRelease.available': '个人构建 {build} 可用',
+  'common.personalRelease.download': '下载更新包',
   'common.backToTop': '回到顶部',
   'common.panel': '面板',
   'common.sidebar': '侧边栏',
